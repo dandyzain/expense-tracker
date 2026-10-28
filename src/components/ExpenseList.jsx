@@ -1,0 +1,185 @@
+import { useState } from 'react'
+import { FiTrash2, FiEdit3, FiCheck, FiX, FiInbox } from 'react-icons/fi'
+import { getCategoryById } from '../utils/categories'
+import { formatRupiah, formatDate } from '../utils/formatters'
+import { CATEGORIES } from '../utils/categories'
+
+function ExpenseItem({ expense, onDelete, onUpdate, index }) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [editForm, setEditForm] = useState({
+    description: expense.description,
+    amount: expense.amount,
+    category: expense.category,
+    date: expense.date,
+  })
+
+  const category = getCategoryById(expense.category)
+  const Icon = category.icon
+
+  const handleSave = () => {
+    if (!editForm.description.trim() || !editForm.amount || Number(editForm.amount) <= 0) return
+    onUpdate(expense.id, {
+      ...editForm,
+      amount: Number(editForm.amount),
+    })
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setEditForm({
+      description: expense.description,
+      amount: expense.amount,
+      category: expense.category,
+      date: expense.date,
+    })
+    setIsEditing(false)
+  }
+
+  const handleDelete = () => {
+    setIsDeleting(true)
+    setTimeout(() => onDelete(expense.id), 300)
+  }
+
+  if (isEditing) {
+    return (
+      <div className="animate-scale-in rounded-2xl border-2 border-blue-200 bg-blue-50/50 p-4 dark:bg-blue-900/20 dark:border-blue-800 transition-all">
+        <div className="space-y-3">
+          <input
+            type="text"
+            value={editForm.description}
+            onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          />
+          <div className="grid grid-cols-3 gap-2">
+            <input
+              type="number"
+              value={editForm.amount}
+              onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+            <select
+              value={editForm.category}
+              onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            >
+              {CATEGORIES.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={editForm.date}
+              onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={handleCancel}
+              className="flex items-center gap-1 rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-all duration-200 hover:bg-gray-300 hover:scale-105 active:scale-95 dark:bg-gray-600 dark:text-gray-200"
+            >
+              <FiX className="h-3.5 w-3.5" /> Batal
+            </button>
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-medium text-white transition-all duration-200 hover:bg-blue-600 hover:scale-105 active:scale-95"
+            >
+              <FiCheck className="h-3.5 w-3.5" /> Simpan
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={`group flex items-center gap-3 rounded-2xl bg-white p-3 sm:p-4 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 animate-fade-in-up ${
+        isDeleting ? 'scale-95 opacity-0 -translate-x-10' : ''
+      }`}
+      style={{ animationDelay: `${Math.min(index * 60, 600)}ms` }}
+    >
+      {/* Category Icon */}
+      <div
+        className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
+        style={{ backgroundColor: category.color + '15' }}
+      >
+        <Icon className="h-5 w-5 sm:h-6 sm:w-6 transition-colors" style={{ color: category.color }} />
+      </div>
+
+      {/* Info */}
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-gray-800 truncate dark:text-white transition-colors">
+          {expense.description}
+        </p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span
+            className="inline-block rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors"
+            style={{ backgroundColor: category.color + '15', color: category.color }}
+          >
+            {category.name}
+          </span>
+          <span className="text-[10px] text-gray-400 dark:text-gray-500 transition-colors">
+            {formatDate(expense.date)}
+          </span>
+        </div>
+      </div>
+
+      {/* Amount & Actions */}
+      <div className="flex items-center gap-2">
+        <p className="text-sm sm:text-base font-bold text-gray-800 whitespace-nowrap dark:text-white transition-colors">
+          {formatRupiah(expense.amount)}
+        </p>
+        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="rounded-lg p-1.5 text-gray-400 transition-all duration-200 hover:bg-blue-50 hover:text-blue-500 hover:scale-110 active:scale-90 dark:hover:bg-blue-900/30"
+            title="Edit"
+          >
+            <FiEdit3 className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={handleDelete}
+            className="rounded-lg p-1.5 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500 hover:scale-110 active:scale-90 dark:hover:bg-red-900/30"
+            title="Hapus"
+          >
+            <FiTrash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function ExpenseList({ expenses, onDelete, onUpdate }) {
+  if (expenses.length === 0) {
+    return (
+      <div className="animate-scale-in flex flex-col items-center justify-center rounded-2xl bg-white p-8 sm:p-12 text-center shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700 transition-colors">
+        <div className="mb-4 rounded-full bg-gray-100 p-4 dark:bg-gray-700 transition-colors">
+          <FiInbox className="h-10 w-10 text-gray-300 dark:text-gray-500 animate-pulse-soft" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 transition-colors">
+          Belum ada pengeluaran
+        </h3>
+        <p className="mt-1 text-sm text-gray-400 dark:text-gray-500 transition-colors">
+          Tekan tombol + untuk menambah pengeluaran pertama Anda
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {expenses.map((expense, index) => (
+        <ExpenseItem
+          key={expense.id}
+          expense={expense}
+          onDelete={onDelete}
+          onUpdate={onUpdate}
+          index={index}
+        />
+      ))}
+    </div>
+  )
+}
