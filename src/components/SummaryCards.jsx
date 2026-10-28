@@ -41,24 +41,24 @@ export default function SummaryCards({ totalToday, totalThisMonth, totalFiltered
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 stagger">
       {cards.map(({ key, label, icon: Icon, gradient, shadowColor }) => (
         <div
           key={key}
-          className={`animate-fade-in-up relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-4 sm:p-5 text-white shadow-lg ${shadowColor} transition-all duration-300 hover:scale-[1.04] hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] cursor-default`}
+          className={`animate-fade-in-up relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-3 sm:p-5 text-white shadow-lg ${shadowColor} transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] cursor-default`}
         >
           {/* Decorative circles */}
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10 transition-transform duration-500 group-hover:scale-125" />
-          <div className="absolute bottom-0 left-0 -mb-6 -ml-6 h-20 w-20 rounded-full bg-white/5" />
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white/10 transition-transform duration-500 group-hover:scale-125" />
+          <div className="absolute bottom-0 left-0 -mb-6 -ml-6 h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-white/5" />
 
           <div className="relative">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="rounded-lg bg-white/20 p-1.5 backdrop-blur-sm">
-                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <div className="rounded-lg bg-white/20 p-1 sm:p-1.5 backdrop-blur-sm">
+                <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
               </div>
-              <p className="text-xs sm:text-sm font-medium text-white/80">{label}</p>
+              <p className="text-[11px] sm:text-sm font-medium text-white/85 truncate">{label}</p>
             </div>
-            <p className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight truncate">
+            <p className="text-sm sm:text-xl lg:text-2xl font-bold tracking-tight truncate">
               {formatRupiah(values[key])}
             </p>
           </div>

@@ -61,10 +61,10 @@ export default function App() {
   } = useExpenses()
 
   return (
-    <div className="min-h-screen bg-gray-50 transition-colors duration-300 dark:bg-gray-900 pb-24">
+    <div className="min-h-screen bg-gray-50 transition-colors duration-300 dark:bg-gray-900 pb-28 sm:pb-24">
       <Header darkMode={darkMode} setDarkMode={setDarkMode} />
 
-      <main className="mx-auto max-w-4xl px-4 py-4 sm:px-6 sm:py-6 space-y-4 sm:space-y-6">
+      <main className="mx-auto max-w-4xl px-3.5 py-3 sm:px-6 sm:py-6 space-y-3.5 sm:space-y-6">
         {/* Top Summary Cards */}
         <SummaryCards
           totalToday={totalToday}
@@ -73,54 +73,58 @@ export default function App() {
           totalAll={totalAll}
         />
 
-        {/* 3-Tab Navigation Switcher */}
+        {/* 3-Tab Navigation Switcher (Responsive, No Text Wrapping on Mobile) */}
         <div
-          className="animate-fade-in-up flex rounded-xl bg-white p-1 shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300"
+          className="animate-fade-in-up flex rounded-2xl bg-white p-1 shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300"
           style={{ animationDelay: '150ms' }}
         >
           <button
             onClick={() => setActiveTab('list')}
-            className={`relative flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-lg py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${
+            className={`relative flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${
               activeTab === 'list'
                 ? 'text-white shadow-sm'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
             }`}
           >
             {activeTab === 'list' && (
-              <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30 transition-all duration-300" />
+              <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30 transition-all duration-300" />
             )}
-            <FiList className="relative h-4 w-4" />
-            <span className="relative">Transaksi</span>
+            <FiList className="relative h-4 w-4 shrink-0" />
+            <span className="relative whitespace-nowrap">Transaksi</span>
           </button>
 
           <button
             onClick={() => setActiveTab('chart')}
-            className={`relative flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-lg py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${
+            className={`relative flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${
               activeTab === 'chart'
                 ? 'text-white shadow-sm'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
             }`}
           >
             {activeTab === 'chart' && (
-              <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30 transition-all duration-300" />
+              <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30 transition-all duration-300" />
             )}
-            <FiBarChart2 className="relative h-4 w-4" />
-            <span className="relative">Grafik & Tren</span>
+            <FiBarChart2 className="relative h-4 w-4 shrink-0" />
+            <span className="relative whitespace-nowrap">
+              Grafik<span className="hidden sm:inline"> & Tren</span>
+            </span>
           </button>
 
           <button
             onClick={() => setActiveTab('report')}
-            className={`relative flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-lg py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${
+            className={`relative flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${
               activeTab === 'report'
                 ? 'text-white shadow-sm'
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
             }`}
           >
             {activeTab === 'report' && (
-              <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30 transition-all duration-300" />
+              <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30 transition-all duration-300" />
             )}
-            <FiPieChart className="relative h-4 w-4" />
-            <span className="relative">Laporan & Statistik</span>
+            <FiPieChart className="relative h-4 w-4 shrink-0" />
+            <span className="relative whitespace-nowrap">
+              Laporan<span className="hidden sm:inline"> & Statistik</span>
+            </span>
           </button>
         </div>
 
@@ -158,7 +162,7 @@ export default function App() {
           )}
 
           {activeTab === 'report' && (
-            <div className="space-y-4">
+            <div className="space-y-3.5 sm:space-y-4">
               {/* Key Metric Stats & Comparison Bars */}
               <StatsOverview
                 totalFiltered={totalFiltered}
@@ -179,8 +183,8 @@ export default function App() {
                 monthComparison={monthComparison}
               />
 
-              {/* Top 5 Largest Expenses & Category Breakdown side-by-side or stacked */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Top 5 Largest Expenses & Category Breakdown */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
                 <TopExpenses
                   topExpenses={topExpenses}
                   totalFiltered={totalFiltered}
