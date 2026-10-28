@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+  </defs>
+  <!-- Background rounded squircle matching App Header Icon -->
+  <rect x="6" y="6" width="116" height="116" rx="32" fill="url(#logoGradient)" />
+  
+  <!-- Subtle inner shadow / border -->
+  <rect x="6" y="6" width="116" height="116" rx="32" stroke="white" stroke-opacity="0.2" stroke-width="2" />
+  
+  <!-- Dollar symbol path matching FiDollarSign -->
+  <line x1="64" y1="24" x2="64" y2="104" stroke="white" stroke-width="10" stroke-linecap="round" />
+  <path d="M84 44H54C45 44 45 60 54 60H74C83 60 83 78 74 78H44" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+</svg>
