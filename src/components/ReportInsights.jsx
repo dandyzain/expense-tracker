@@ -25,11 +25,12 @@ export default function ReportInsights({
   const handleExportCSV = () => {
     if (!expenses || expenses.length === 0) return
 
-    const headers = ['ID', 'Deskripsi', 'Kategori', 'Tanggal', 'Jumlah (Rp)']
+    const headers = ['ID', 'Deskripsi', 'Kategori', 'Qty', 'Tanggal', 'Jumlah (Rp)']
     const rows = expenses.map((e) => [
       `"${e.id}"`,
       `"${(e.description || '').replace(/"/g, '""')}"`,
       `"${getCategoryById(e.category).name}"`,
+      e.qty || 1,
       `"${e.date}"`,
       e.amount,
     ])

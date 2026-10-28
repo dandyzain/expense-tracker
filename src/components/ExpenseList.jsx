@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { FiTrash2, FiEdit3, FiCheck, FiX, FiInbox } from 'react-icons/fi'
-import { getCategoryById } from '../utils/categories'
+import { getCategoryById, CATEGORIES } from '../utils/categories'
 import { formatRupiah, formatDate } from '../utils/formatters'
-import { CATEGORIES } from '../utils/categories'
 
 function ExpenseItem({ expense, onDelete, onUpdate, index }) {
   const [isEditing, setIsEditing] = useState(false)
@@ -11,10 +10,12 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
     description: expense.description,
     amount: expense.amount,
     category: expense.category,
+    qty: expense.qty || 1,
     date: expense.date,
   })
 
   const category = getCategoryById(expense.category)
+  const editCategory = getCategoryById(editForm.category)
   const Icon = category.icon
 
   const handleSave = () => {
@@ -22,6 +23,7 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
     onUpdate(expense.id, {
       ...editForm,
       amount: Number(editForm.amount),
+      qty: editCategory.hasQty ? Math.max(1, parseInt(editForm.qty, 10) || 1) : 1,
     })
     setIsEditing(false)
   }
@@ -31,6 +33,7 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
       description: expense.description,
       amount: expense.amount,
       category: expense.category,
+      qty: expense.qty || 1,
       date: expense.date,
     })
     setIsEditing(false)
@@ -40,6 +43,9 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
     setIsDeleting(true)
     setTimeout(() => onDelete(expense.id), 300)
   }
+
+  const hasMultipleQty = expense.qty && expense.qty > 1 && category.hasQty
+  const unitPrice = hasMultipleQty ? Math.round(expense.amount / expense.qty) : null
 
   if (isEditing) {
     return (
@@ -51,20 +57,33 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
             onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
             className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
-          <div className="grid grid-cols-3 gap-2">
+          <div className={`grid gap-2 ${editCategory.hasQty ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <input
               type="number"
+              placeholder="Jumlah (Rp)"
               value={editForm.amount}
               onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
+            {editCategory.hasQty && (
+              <input
+                type="number"
+                min="1"
+                placeholder={`Qty (${editCategory.qtyUnit})`}
+                value={editForm.qty}
+                onChange={(e) => setEditForm({ ...editForm, qty: e.target.value })}
+                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            )}
             <select
               value={editForm.category}
               onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               {CATEGORIES.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
               ))}
             </select>
             <input
@@ -110,9 +129,16 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
 
       {/* Info */}
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-gray-800 truncate dark:text-white transition-colors">
-          {expense.description}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-gray-800 truncate dark:text-white transition-colors">
+            {expense.description}
+          </p>
+          {hasMultipleQty && (
+            <span className="shrink-0 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/50">
+              {expense.qty} {category.qtyUnit}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2 mt-0.5">
           <span
             className="inline-block rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors"
@@ -127,10 +153,18 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
       </div>
 
       {/* Amount & Actions */}
-      <div className="flex items-center gap-2">
-        <p className="text-sm sm:text-base font-bold text-gray-800 whitespace-nowrap dark:text-white transition-colors">
-          {formatRupiah(expense.amount)}
-        </p>
+      <div className="flex items-center gap-2 text-right">
+        <div>
+          <p className="text-sm sm:text-base font-bold text-gray-800 whitespace-nowrap dark:text-white transition-colors">
+            {formatRupiah(expense.amount)}
+          </p>
+          {unitPrice !== null && (
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 -mt-0.5">
+              @{formatRupiah(unitPrice)}/{category.qtyUnit}
+            </p>
+          )}
+        </div>
+
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
           <button
             onClick={() => setIsEditing(true)}

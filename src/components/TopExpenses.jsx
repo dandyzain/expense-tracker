@@ -63,6 +63,14 @@ export default function TopExpenses({ topExpenses, totalFiltered }) {
                 </p>
                 <div className="flex items-center gap-2 mt-0.5 text-[10px] text-gray-400 dark:text-gray-500">
                   <span>{cat.name}</span>
+                  {expense.qty && expense.qty > 1 && (
+                    <>
+                      <span>•</span>
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                        {expense.qty} {cat.qtyUnit || 'item'}
+                      </span>
+                    </>
+                  )}
                   <span>•</span>
                   <span>{formatDate(expense.date)}</span>
                 </div>
