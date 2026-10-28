@@ -303,11 +303,6 @@ export default function ExpenseForm({ onAdd, isOpen, onToggle }) {
                       <span className="truncate w-full text-center text-[10px] text-gray-600 dark:text-gray-300">
                         {cat.name.split(' ')[0]}
                       </span>
-                      {cat.hasQty && (
-                        <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-500 text-[8px] font-bold text-white shadow-sm">
-                          ×
-                        </span>
-                      )}
                     </button>
                   )
                 })}
