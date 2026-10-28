@@ -6,24 +6,50 @@ import { formatRupiah, formatDate } from '../utils/formatters'
 function ExpenseItem({ expense, onDelete, onUpdate, index }) {
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const category = getCategoryById(expense.category)
+  const initialUnitPrice =
+    expense.unitPrice ||
+    (expense.qty && expense.qty > 0 ? Math.round(expense.amount / expense.qty) : expense.amount)
+
   const [editForm, setEditForm] = useState({
     description: expense.description,
+    unitPrice: initialUnitPrice,
     amount: expense.amount,
     category: expense.category,
     qty: expense.qty || 1,
     date: expense.date,
   })
 
-  const category = getCategoryById(expense.category)
   const editCategory = getCategoryById(editForm.category)
   const Icon = category.icon
 
+  // Hitung total otomatis di mode edit
+  const editComputedTotal = editCategory.hasQty
+    ? (Number(editForm.unitPrice) || 0) * Math.max(1, parseInt(editForm.qty, 10) || 1)
+    : Number(editForm.amount) || 0
+
   const handleSave = () => {
-    if (!editForm.description.trim() || !editForm.amount || Number(editForm.amount) <= 0) return
+    if (!editForm.description.trim()) return
+
+    if (editCategory.hasQty) {
+      if (!editForm.unitPrice || Number(editForm.unitPrice) <= 0) return
+    } else {
+      if (!editForm.amount || Number(editForm.amount) <= 0) return
+    }
+
+    const finalQty = editCategory.hasQty ? Math.max(1, parseInt(editForm.qty, 10) || 1) : 1
+    const finalUnitPrice = editCategory.hasQty
+      ? Number(editForm.unitPrice)
+      : Number(editForm.amount)
+
     onUpdate(expense.id, {
-      ...editForm,
-      amount: Number(editForm.amount),
-      qty: editCategory.hasQty ? Math.max(1, parseInt(editForm.qty, 10) || 1) : 1,
+      description: editForm.description.trim(),
+      amount: editComputedTotal,
+      unitPrice: finalUnitPrice,
+      category: editForm.category,
+      qty: finalQty,
+      date: editForm.date,
     })
     setIsEditing(false)
   }
@@ -31,6 +57,7 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
   const handleCancel = () => {
     setEditForm({
       description: expense.description,
+      unitPrice: initialUnitPrice,
       amount: expense.amount,
       category: expense.category,
       qty: expense.qty || 1,
@@ -45,7 +72,8 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
   }
 
   const hasMultipleQty = expense.qty && expense.qty > 1 && category.hasQty
-  const unitPrice = hasMultipleQty ? Math.round(expense.amount / expense.qty) : null
+  const unitPrice =
+    expense.unitPrice || (hasMultipleQty ? Math.round(expense.amount / expense.qty) : null)
 
   if (isEditing) {
     return (
@@ -53,28 +81,67 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
         <div className="space-y-3">
           <input
             type="text"
+            placeholder="Deskripsi"
             value={editForm.description}
             onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
             className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
-          <div className={`grid gap-2 ${editCategory.hasQty ? 'grid-cols-4' : 'grid-cols-3'}`}>
-            <input
-              type="number"
-              placeholder="Jumlah (Rp)"
-              value={editForm.amount}
-              onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            />
-            {editCategory.hasQty && (
+
+          {editCategory.hasQty ? (
+            /* Input Harga Satuan & Qty -> Total Otomatis */
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 block mb-1">
+                    Harga Satuan (Rp)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Harga Satuan"
+                    value={editForm.unitPrice}
+                    onChange={(e) => setEditForm({ ...editForm, unitPrice: e.target.value })}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 block mb-1">
+                    Qty ({editCategory.qtyUnit})
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="1"
+                    value={editForm.qty}
+                    onChange={(e) => setEditForm({ ...editForm, qty: e.target.value })}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Total Otomatis */}
+              <div className="rounded-lg bg-blue-100/60 p-2 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 flex items-center justify-between">
+                <span>
+                  Total ({editForm.qty || 1} {editCategory.qtyUnit} × {formatRupiah(Number(editForm.unitPrice) || 0)}):
+                </span>
+                <span className="font-extrabold text-sm">{formatRupiah(editComputedTotal)}</span>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 block mb-1">
+                Jumlah (Rp)
+              </label>
               <input
                 type="number"
-                min="1"
-                placeholder={`Qty (${editCategory.qtyUnit})`}
-                value={editForm.qty}
-                onChange={(e) => setEditForm({ ...editForm, qty: e.target.value })}
-                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="Jumlah (Rp)"
+                value={editForm.amount}
+                onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
-            )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-2">
             <select
               value={editForm.category}
               onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
@@ -93,7 +160,8 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
-          <div className="flex justify-end gap-2">
+
+          <div className="flex justify-end gap-2 pt-1">
             <button
               onClick={handleCancel}
               className="flex items-center gap-1 rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-all duration-200 hover:bg-gray-300 hover:scale-105 active:scale-95 dark:bg-gray-600 dark:text-gray-200"
@@ -102,9 +170,9 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-medium text-white transition-all duration-200 hover:bg-blue-600 hover:scale-105 active:scale-95"
+              className="flex items-center gap-1 rounded-lg bg-blue-500 px-3.5 py-1.5 text-xs font-medium text-white transition-all duration-200 hover:bg-blue-600 hover:scale-105 active:scale-95"
             >
-              <FiCheck className="h-3.5 w-3.5" /> Simpan
+              <FiCheck className="h-3.5 w-3.5" /> Simpan ({formatRupiah(editComputedTotal)})
             </button>
           </div>
         </div>
