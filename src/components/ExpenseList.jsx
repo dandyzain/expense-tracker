@@ -1,11 +1,17 @@
-import { useState } from 'react'
-import { FiTrash2, FiEdit3, FiCheck, FiX, FiInbox } from 'react-icons/fi'
+import { useState, useEffect } from 'react'
+import {
+  FiTrash2,
+  FiEdit3,
+  FiCheck,
+  FiX,
+  FiInbox,
+  FiAlertTriangle,
+} from 'react-icons/fi'
 import { getCategoryById, CATEGORIES } from '../utils/categories'
 import { formatRupiah, formatDate } from '../utils/formatters'
 
-function ExpenseItem({ expense, onDelete, onUpdate, index }) {
+function ExpenseItem({ expense, onRequestDelete, onUpdate, index }) {
   const [isEditing, setIsEditing] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
 
   const category = getCategoryById(expense.category)
   const initialUnitPrice =
@@ -64,11 +70,6 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
       date: expense.date,
     })
     setIsEditing(false)
-  }
-
-  const handleDelete = () => {
-    setIsDeleting(true)
-    setTimeout(() => onDelete(expense.id), 300)
   }
 
   const hasMultipleQty = expense.qty && expense.qty > 1 && category.hasQty
@@ -182,9 +183,7 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
 
   return (
     <div
-      className={`group flex items-center gap-3 rounded-2xl bg-white p-3 sm:p-4 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 animate-fade-in-up ${
-        isDeleting ? 'scale-95 opacity-0 -translate-x-10' : ''
-      }`}
+      className="group flex items-center gap-3 rounded-2xl bg-white p-3 sm:p-4 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 animate-fade-in-up"
       style={{ animationDelay: `${Math.min(index * 60, 600)}ms` }}
     >
       {/* Category Icon */}
@@ -242,7 +241,7 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
             <FiEdit3 className="h-3.5 w-3.5" />
           </button>
           <button
-            onClick={handleDelete}
+            onClick={() => onRequestDelete(expense)}
             className="rounded-lg p-1.5 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500 hover:scale-110 active:scale-90 dark:hover:bg-red-900/30"
             title="Hapus"
           >
@@ -255,6 +254,30 @@ function ExpenseItem({ expense, onDelete, onUpdate, index }) {
 }
 
 export default function ExpenseList({ expenses, onDelete, onUpdate }) {
+  const [itemToDelete, setItemToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  // Tutup popup konfirmasi saat tombol Escape ditekan
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && itemToDelete && !isDeleting) {
+        setItemToDelete(null)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [itemToDelete, isDeleting])
+
+  const handleConfirmDelete = () => {
+    if (!itemToDelete) return
+    setIsDeleting(true)
+    setTimeout(() => {
+      onDelete(itemToDelete.id)
+      setItemToDelete(null)
+      setIsDeleting(false)
+    }, 200)
+  }
+
   if (expenses.length === 0) {
     return (
       <div className="animate-scale-in flex flex-col items-center justify-center rounded-2xl bg-white p-8 sm:p-12 text-center shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700 transition-colors">
@@ -272,16 +295,74 @@ export default function ExpenseList({ expenses, onDelete, onUpdate }) {
   }
 
   return (
-    <div className="space-y-2">
-      {expenses.map((expense, index) => (
-        <ExpenseItem
-          key={expense.id}
-          expense={expense}
-          onDelete={onDelete}
-          onUpdate={onUpdate}
-          index={index}
-        />
-      ))}
-    </div>
+    <>
+      <div className="space-y-2">
+        {expenses.map((expense, index) => (
+          <ExpenseItem
+            key={expense.id}
+            expense={expense}
+            onRequestDelete={(item) => setItemToDelete(item)}
+            onUpdate={onUpdate}
+            index={index}
+          />
+        ))}
+      </div>
+
+      {/* Modal Popup Konfirmasi Persetujuan Hapus */}
+      {itemToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop blur */}
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity animate-fade-in"
+            onClick={() => !isDeleting && setItemToDelete(null)}
+          />
+
+          {/* Dialog Modal Card */}
+          <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl dark:bg-gray-800 border border-gray-100 dark:border-gray-700 animate-scale-in text-center">
+            {/* Warning Icon Badge */}
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
+              <FiAlertTriangle className="h-7 w-7 animate-bounce-in" />
+            </div>
+
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white">
+              Hapus Transaksi?
+            </h3>
+
+            <p className="mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+              Apakah Anda yakin ingin menghapus transaksi{' '}
+              <span className="font-semibold text-gray-800 dark:text-gray-200">
+                "{itemToDelete.description}"
+              </span>{' '}
+              senilai{' '}
+              <span className="font-bold text-red-600 dark:text-red-400">
+                {formatRupiah(itemToDelete.amount)}
+              </span>
+              ? Tindakan ini tidak dapat dibatalkan.
+            </p>
+
+            {/* Tombol Aksi */}
+            <div className="mt-6 flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setItemToDelete(null)}
+                disabled={isDeleting}
+                className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-xs sm:text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 active:scale-95 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="flex-1 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-red-500/30 transition-all duration-200 hover:from-red-600 hover:to-rose-700 active:scale-95 disabled:opacity-50"
+              >
+                {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
